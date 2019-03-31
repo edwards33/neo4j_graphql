@@ -1,7 +1,7 @@
 require('dotenv').config()
 const { v1: neo4j } = require('neo4j-driver')
-const { ApolloServer, makeExecutableSchema } = require('apollo-server')
-const { augmentSchema } = require('neo4j-graphql-js')
+const { ApolloServer } = require('apollo-server')
+const { makeAugmentedSchema } = require('neo4j-graphql-js')
 
 const driver = neo4j.driver(
     `bolt://${process.env.NEO4J_HOST}:24787`,
@@ -9,15 +9,29 @@ const driver = neo4j.driver(
 )
 
 const typeDefs = `
-type Person { name: String! }
-type Planet { name: String! }
-type Query {
-  Person: [Person]
-  Planet: [Planet]
+type Person { 
+    name: String!
+    homeworld: Planet @relation(name: "HAS_HOMEWORLD", direction: "OUT")
+    species: [Species] @relation(name: "HAS_SPECIES", direction: "OUT")
+    films: [Film] @relation(name: "APPEARED_IN", direction: "OUT")
+}
+type Planet { 
+    name: String!
+    films: [Film] @relation(name: "APPEARED_IN", direction: "OUT")
+}
+type Species {
+    name: String!
+    films: [Film] @relation(name: "APPEARED_IN", direction: "OUT")
+}
+type Film {
+    title: String!
+    people: [Person] @relation(name: "APPEARED_IN", direction: "IN")
+    planets: [Planet] @relation(name: "APPEARED_IN", direction: "IN")
+    species: [Species] @relation(name: "APPEARED_IN", direction: "IN")
 }
 `
 
-const schema = augmentSchema(makeExecutableSchema({ typeDefs }))
+const schema = makeAugmentedSchema({ typeDefs })
 
 new ApolloServer({
     schema,
