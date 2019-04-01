@@ -9,13 +9,13 @@ const driver = neo4j.driver(
 )
 
 const typeDefs = `
-type Person { 
+type Person {
     name: String!
     homeworld: Planet @relation(name: "HAS_HOMEWORLD", direction: "OUT")
     species: [Species] @relation(name: "HAS_SPECIES", direction: "OUT")
     films: [Film] @relation(name: "APPEARED_IN", direction: "OUT")
 }
-type Planet { 
+type Planet {
     name: String!
     films: [Film] @relation(name: "APPEARED_IN", direction: "OUT")
 }
